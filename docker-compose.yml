@@ -1,0 +1,85 @@
+version: '3.2'
+services:
+  nginx:
+    build:
+      context: ./docker/dev.nginx
+      dockerfile: Dockerfile
+    volumes:
+      - ./:/var/www
+    environment:
+      - "DB_PORT=3306"
+      - "DB_HOST=mysql"
+      - "XDG_CONFIG_HOME=/app"
+    ports:
+      - "80:80"
+      - "8080:8080"
+    networks:
+      - app-network
+
+  php-fpm:
+    build:
+      context: ./docker/php-fpm
+      dockerfile: Dockerfile
+    volumes:
+      - .:/var/www
+      - ./docker/php-fpm.dev.ini:/usr/local/etc/php/conf.d/dev.ini:ro
+      - ~/.ssh:/root/.ssh:ro
+    environment:
+      - "DB_PORT=3306"
+      - "DB_HOST=mysql"
+      - "REVERB_SERVER_PORT=6001"
+    ports:
+      - "6001:6001"
+    networks:
+      - app-network
+
+  mysql:
+    image: mysql:8.0
+    volumes:
+      - database:/var/lib/mysql
+      - ./docker/my.cnf:/etc/mysql/conf.d/custom.cnf:ro
+    environment:
+      - "MYSQL_ROOT_PASSWORD=secret"
+      - "MYSQL_USER=user"
+      - "MYSQL_PASSWORD=secret"
+      - "MYSQL_DATABASE=laravel"
+      - "TZ=Europe/Moscow"
+    ports:
+      - "3306:3306"
+    networks:
+      - app-network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadminSKUD
+    environment:
+      - PMA_HOST=mysql
+      - PMA_USER=user
+      - PMA_PASSWORD=secret
+      - UPLOAD_LIMIT=64M
+    ports:
+      - "8081:8081"
+    networks:
+      - app-network
+
+  node:
+    image: node:18-alpine
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./:/var/www
+    working_dir: /var/www
+    tty: true
+    command: >
+      sh -c "npm install &&
+             npm run dev &&
+             npm run start"
+    networks:
+      - app-network
+
+volumes:
+  database:
+
+networks:
+  app-network:
+    driver: bridge
