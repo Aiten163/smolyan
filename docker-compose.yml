@@ -63,17 +63,17 @@ services:
       - app-network
 
   node:
-    image: node:18-alpine
+    image: node
     ports:
-      - "3000:3000"
+      - "5175:5175"
     volumes:
       - ./:/var/www
     working_dir: /var/www
     tty: true
     command: >
       sh -c "npm install &&
-             npm run dev &&
-             npm run start"
+             npm run build &&
+             npm run dev"
     networks:
       - app-network
 
