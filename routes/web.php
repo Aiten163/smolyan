@@ -1,12 +1,18 @@
 <?php
+
+use App\Http\Controllers\SotrController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WorkerController;
 use App\Http\Controllers\UniversityController;
+use App\Http\Controllers\ImageGenerateController;
+
 Route::get('/', function () {
     return view('main');
 })->name('main');
 
-Route::get('/generate-image', [\App\Http\Controllers\ImageGenerateController::class, 'generateImage'])->name('generate.image');
+Route::get('/generate-image/{contrast}', [ImageGenerateController::class, 'generateImage'])
+    ->where('contrast', '-?[0-9]+')
+    ->name('generate.image');
 
 Route::get('/office_program/lab1', function () {
     return view('office_program.lab1.index');
@@ -14,9 +20,8 @@ Route::get('/office_program/lab1', function () {
 Route::get('/office_program/lab2', function () {
     return view('office_program.lab2.index');
 });
-Route::get('/office_program/lab3', function () {
-    return view('office_program.lab1.index');
-});
+Route::get('/office_program/lab3', [SotrController::class, 'getHtml']);
+
 Route::get('/office_program/lab4', function () {
     return view('office_program.lab1.index');
 });

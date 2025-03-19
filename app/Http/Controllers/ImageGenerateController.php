@@ -7,60 +7,49 @@ use Illuminate\Support\Facades\Response;
 
 class ImageGenerateController extends Controller
 {
-    public function generateImage(Request $request)
+    public function generateImage($contrast)
     {
-        // Получаем значение контрастности из GET-запроса
-        $contrast = $request->query('contrast', 0);
+        $contrast = (int) $contrast;
+        $filename = public_path('lab2.jpg');
 
-        // Загружаем изображение
-        $filename = public_path('lab2.jpg'); // Убедитесь, что изображение находится в папке public
+        if (!file_exists($filename)) {
+            abort(404, "Файл изображения не найден");
+        }
+
         $info = getimagesize($filename);
-        $width = $info[0];
-        $height = $info[1];
         $type = $info[2];
 
         switch ($type) {
-            case 1:
-                $img = imageCreateFromGif($filename);
+            case IMAGETYPE_GIF:
+                $img = imagecreatefromgif($filename);
                 imageSaveAlpha($img, true);
                 break;
-            case 2:
-                $img = imageCreateFromJpeg($filename);
+            case IMAGETYPE_JPEG:
+                $img = imagecreatefromjpeg($filename);
                 break;
-            case 3:
-                $img = imageCreateFromPng($filename);
+            case IMAGETYPE_PNG:
+                $img = imagecreatefrompng($filename);
                 imageSaveAlpha($img, true);
                 break;
             default:
-                abort(400, "Неподдерживаемый тип изображения");
+                abort(400, "Неподдерживаемый формат изображения");
         }
 
         // Добавляем текст с текущим значением контрастности
-        $font_file = public_path('arial.ttf'); // Убедитесь, что шрифт находится в папке public
-        $ColorLines = imagecolorallocate($img, 0, 0, 0);
-        $ColorFill = imagecolorallocate($img, 250, 250, 160);
-        $color_text = imagecolorallocate($img, 20, 10, 10);
-
-        imagefilledrectangle($img, 10, 10, 150, 82, $ColorFill);
-        imagerectangle($img, 9, 9, 154, 86, $ColorLines);
-        imagettftext($img, 36, 0, 35, 66, $color_text, $font_file, $contrast);
+        $fontFile = public_path('arial.ttf');
+        if (file_exists($fontFile)) {
+            $colorText = imagecolorallocate($img, 20, 10, 10);
+            imagettftext($img, 20, 0, 20, 40, $colorText, $fontFile, "Контраст: $contrast");
+        }
 
         // Применяем фильтр контрастности
-        imagefilter($img, IMG_FILTER_CONTRAST, $contrast);
+        imagefilter($img, IMG_FILTER_CONTRAST, -$contrast);
 
-        // Начинаем буферизацию вывода
         ob_start();
-
-        // Генерируем изображение и выводим его в буфер
         imagejpeg($img, null, 100);
-
-        // Получаем содержимое буфера
         $imageContent = ob_get_clean();
-
-        // Освобождаем память
         imagedestroy($img);
 
-        // Возвращаем ответ с изображением
         return Response::make($imageContent, 200, ['Content-Type' => 'image/jpeg']);
     }
 }

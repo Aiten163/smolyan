@@ -22,6 +22,7 @@ RUN apt-get install -y \
 RUN docker-php-ext-install mysqli
 # Установка PHP Spreadsheet через Composer
 RUN composer require phpoffice/phpspreadsheet
-
+RUN usermod -u 1000 www-data
+RUN groupmod -g 1000 www-data
 # Установка рабочей директории
 WORKDIR /var/www/html
