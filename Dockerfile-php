@@ -1,28 +1,35 @@
+# Use the official PHP 8.4 FPM image as the base image
 FROM php:8.4-fpm
 
-# Установка необходимых системных библиотек для GD
+# Install system dependencies for PHP extensions
 RUN apt-get update && apt-get install -y \
     libfreetype6-dev \
     libjpeg62-turbo-dev \
     libpng-dev \
     libwebp-dev \
     libxpm-dev \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp --with-xpm \
-    && docker-php-ext-install pdo_mysql gd
-
-# Установка Composer
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-
-# Установка дополнительных системных библиотек для mbstring, xml и zip
-RUN apt-get install -y \
     libxml2-dev \
     libonig-dev \
     libzip-dev \
-    && docker-php-ext-install xml mbstring zip
-RUN docker-php-ext-install mysqli
-# Установка PHP Spreadsheet через Composer
-RUN composer require phpoffice/phpspreadsheet
-RUN usermod -u 1000 www-data
-RUN groupmod -g 1000 www-data
-# Установка рабочей директории
+    && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp --with-xpm \
+    && docker-php-ext-install -j$(nproc) gd pdo_mysql mysqli xml mbstring zip
+
+# Install Composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Set working directory
 WORKDIR /var/www/html
+
+# Copy application files
+COPY . .
+
+# Install PHP Spreadsheet via Composer
+RUN composer require phpoffice/phpspreadsheet
+
+# Adjust permissions for the www-data user
+RUN usermod -u 1000 www-data && groupmod -g 1000 www-data
+
+# Expose port 9000 for PHP-FPM
+EXPOSE 9000
+# Start PHP-FPM
+CMD ["php-fpm"]
