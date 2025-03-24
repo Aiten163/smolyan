@@ -2,7 +2,7 @@
 
 @section('title', 'lab2')
 @section('content')
-    <button class="btn bi-cloud-download"> Скачать Excel</button>
+    <button class="btn bi-cloud-download"><a href="">Скачать Excel</a> </button>
     <table class="table table-bordered">
         <thead>
         <tr>

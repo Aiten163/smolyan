@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Lab5Controller;
 use App\Http\Controllers\SotrController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WorkerController;
@@ -38,7 +39,9 @@ Route::prefix('data_base')->group(function () {
     Route::resource('/lab2', 'App\Http\Controllers\WorkerController')->except(['show']);
 
     Route::get('/lab3', [UniversityController::class, 'index']);
+    Route::get('/lab4', [UniversityController::class, 'index']);
     Route::get('/lab3/departments/{facultyId}', [UniversityController::class, 'getDepartments'])->name('faculty'); // Получить кафедры для факультета
     Route::get('/lab3/employees/{departmentId}', [UniversityController::class, 'getEmployees'])->name('employees'); // Получить сотрудников для кафедры
-
+    Route::get('/lab3/employees/show/{employeesId}', [UniversityController::class, 'showEmployees'])->name('showEmployees');
+    Route::get('/lab5', [Lab5Controller::class, 'index']);
 });

@@ -11,21 +11,21 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class SotrController extends Controller
 {
-    public function getHtml()
+    protected function bd()
     {
-        $sotrs = DB::table('sotr')
+         return DB::table('sotr')
             ->join('otdels', 'sotr.Otdel', '=', 'otdels.idOtdel')
             ->join('zarpl', 'sotr.id', '=', 'zarpl.idSotr')
             ->get();
+    }
+    public function getHtml()
+    {
+        $sotrs = $this->bd();
         return view('office_program.lab3.index', compact('sotrs'));
     }
     public function createExcel()
     {
-        require_once('../../vendor/autoload.php');
-        $sotr = DB::table('sotr')
-            ->join('otdels', 'sotr.Otdel', '=', 'otdels.idOtdel')
-            ->join('zarpl', 'sotr.id', '=', 'zarpl.idSotr')
-            ->get();
+        $sotrs = $this->bd();
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setCellValue('C1', 'id');
@@ -33,13 +33,14 @@ class SotrController extends Controller
         $sheet->setCellValue('E1', 'Фамилия');
         $sheet->setCellValue('F1', 'Имя');
         $sheet->setCellValue('G1', 'Зарплата');
-        print_r($sotr);
-        for ($i=0; $i<count($sotr); $i++) {
-            $sheet->setCellValue('C'.$i+2, $sotr[$i]["id"]);
-            $sheet->setCellValue('D'. $i+2, $sotr[$i]["NameOtdel"]);
-            $sheet->setCellValue('E'. $i+2, $sotr[$i]["LastName"]);
-            $sheet->setCellValue('F'. $i+2, $sotr[$i]["FirstName"]);
-            $sheet->setCellValue('G'.$i+2, $sotr[$i]["TotalSalary"]);
+        print_r($sotrs);
+        $count = count($sotrs);
+        for ($i=0; $i<$count; $i++) {
+            $sheet->setCellValue('C'.$i+2, $sotrs[$i]["id"]);
+            $sheet->setCellValue('D'. $i+2, $sotrs[$i]["NameOtdel"]);
+            $sheet->setCellValue('E'. $i+2, $sotrs[$i]["LastName"]);
+            $sheet->setCellValue('F'. $i+2, $sotrs[$i]["FirstName"]);
+            $sheet->setCellValue('G'.$i+2, $sotrs[$i]["TotalSalary"]);
         };
 
         $writer = new Xlsx($spreadsheet);
