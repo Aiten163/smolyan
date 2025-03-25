@@ -25,10 +25,10 @@ class Lab5Controller extends Controller
         }
 
         // Создаем изображение
-        $width = 600;
+        $width = 800;
         $height = 400;
         $image = imagecreatetruecolor($width, $height);
-
+        $color = 40;
         // Цвета
         $background = imagecolorallocate($image, 255, 235, 205); // Бежевый фон
         $black = imagecolorallocate($image, 0, 0, 0);
@@ -40,10 +40,15 @@ class Lab5Controller extends Controller
             imagecolorallocate($image, 255, 182, 193), // Светло-розовый (тех. обеспечения)
             imagecolorallocate($image, 255, 105, 180)  // Темно-розовый (безопасности труда)
         ];
+//        $colors_down = [
+//            imagecolorallocate($image, 82, 151, 82), // Светло-зеленый (управления)
+//            imagecolorallocate($image, 185, 127, 135), // Светло-розовый (тех. обеспечения)
+//            imagecolorallocate($image, 193, 95, 144)  // Темно-розовый (безопасности труда)
+//        ];
         $colors_down = [
-            imagecolorallocate($image, 82, 151, 82), // Светло-зеленый (управления)
-            imagecolorallocate($image, 185, 127, 135), // Светло-розовый (тех. обеспечения)
-            imagecolorallocate($image, 193, 95, 144)  // Темно-розовый (безопасности труда)
+            imagecolorallocate($image, 144-$color, 238-$color, 144-$color), // Светло-зеленый (управления)
+            imagecolorallocate($image, 255-$color, 182-$color, 193-$color), // Светло-розовый (тех. обеспечения)
+            imagecolorallocate($image, 255-$color, 105-$color, 180-$color)  // Темно-розовый (безопасности труда)
         ];
 
         // Заполняем фон
@@ -57,6 +62,7 @@ class Lab5Controller extends Controller
         $up = 80; // вверх
         $depth = 100; // Толщина цилиндра
         $startAngle = 0;
+        $color = 40;
 
         // Рисуем "основание" цилиндра (тень)
         imagefilledellipse($image, $centerX, $centerY + $depth, $radiusX * 2, $radiusY * 2, $shadow);

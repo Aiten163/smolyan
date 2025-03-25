@@ -34,6 +34,12 @@
 </head>
 <body>
 <div class="container">
+    <form action="{{route('lab3')}}">
+        @csrf
+        <input type="hidden" name="id_fak" value="{{$employ['faculty_id']}}">
+        <input type="hidden" name="id_caf" value="{{$employ['department_id']}}">
+        <input type="submit" value="Назад">
+    </form>
     <div class="staff-card">
         <div class="staff-header">
             <h3>{{$employ['full_name']}}</h3>

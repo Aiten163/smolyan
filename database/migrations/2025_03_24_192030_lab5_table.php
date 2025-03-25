@@ -13,7 +13,7 @@ return new class extends Migration
     {
         // Создание таблицы отделов
         Schema::create('otdels', function (Blueprint $table) {
-            $table->integer('idOtdel', 4)->primary();
+            $table->integer('idOtdel')->primary();
             $table->string('NameOtdel', 25);
         });
 
@@ -27,10 +27,10 @@ return new class extends Migration
 
         // Создание таблицы сотрудников
         Schema::create('sotr', function (Blueprint $table) {
-            $table->integer('id', 5)->primary();
+            $table->integer('id')->primary();
             $table->string('LastName', 20);
             $table->string('FirstName', 20);
-            $table->integer('Otdel', 3);
+            $table->integer('Otdel');
             $table->date('Date_R');
             $table->string('Dolzn', 25);
 
@@ -186,9 +186,9 @@ return new class extends Migration
 
         // Создание таблицы зарплат
         Schema::create('zarpl', function (Blueprint $table) {
-            $table->integer('idSotr', 5);
-            $table->integer('God', 3);
-            $table->integer('Month', 2);
+            $table->integer('idSotr');
+            $table->integer('God');
+            $table->integer('Month');
             $table->decimal('Money', 8, 2);
 
             $table->foreign('idSotr')->references('id')->on('sotr');

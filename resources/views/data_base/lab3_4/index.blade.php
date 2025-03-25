@@ -16,13 +16,14 @@
     <label for="faculty-select" class="form-label">Факультет/Институт</label>
     <select id="faculty-select" class="form-select">
         @foreach ($faculties as $faculty)
-            <option value="{{ $faculty->id }}">{{ $faculty->name }}</option>
+            <option value="{{ $faculty->id }}" {{ $ids['id_fak'] == $faculty->id ? 'selected' : '' }}>
+                {{ $faculty->name }}
+            </option>
         @endforeach
     </select>
 </div>
 <button id="select-faculty" class="btn btn-primary mb-3">Выбрать факультет</button>
 
-<!-- Список кафедр (пока пуст) -->
 <div class="mb-3">
     <label for="department-select" class="form-label">Кафедра</label>
     <select id="department-select" class="form-select"></select>
@@ -58,9 +59,18 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    // Получаем кафедры по выбранному факультету
-    document.getElementById('select-faculty').addEventListener('click', function () {
-        const facultyId = document.getElementById('faculty-select').value;
+    // При загрузке страницы проверяем, есть ли сохраненные значения
+    document.addEventListener('DOMContentLoaded', function() {
+        const facultyId = "{{ $ids['id_fak']}}";
+        const departmentId = "{{ $ids['id_caf'] }}";
+        if (facultyId) {
+            // Если есть сохраненный факультет, загружаем его кафедры
+            loadDepartments(facultyId, departmentId);
+        }
+    });
+
+    // Функция для загрузки кафедр
+    function loadDepartments(facultyId, selectDepartmentId = null) {
         const departmentSelect = document.getElementById('department-select');
 
         fetch(`/data_base/lab3/departments/${facultyId}`)
@@ -71,7 +81,7 @@
                 return response.json();
             })
             .then(departments => {
-                departmentSelect.innerHTML = ''; // Очищаем список кафедр
+                departmentSelect.innerHTML = '';
                 if (departments.length === 0) {
                     departmentSelect.innerHTML = '<option disabled>Нет кафедр для этого факультета</option>';
                 } else {
@@ -79,6 +89,12 @@
                         const option = document.createElement('option');
                         option.value = department.id;
                         option.textContent = department.name;
+                        // Если есть сохраненная кафедра, выбираем ее
+                        if (selectDepartmentId && department.id == selectDepartmentId) {
+                            option.selected = true;
+                            // Загружаем сотрудников для выбранной кафедры
+                            loadEmployees(department.id);
+                        }
                         departmentSelect.appendChild(option);
                     });
                 }
@@ -86,11 +102,10 @@
             .catch(error => {
                 alert(error.message);
             });
-    });
+    }
 
-    // Получаем сотрудников по выбранной кафедре
-    document.getElementById('select-department').addEventListener('click', function () {
-        const departmentId = document.getElementById('department-select').value;
+    // Функция для загрузки сотрудников
+    function loadEmployees(departmentId) {
         const employeeList = document.getElementById('employee-list');
 
         fetch(`/data_base/lab3/employees/${departmentId}`)
@@ -101,7 +116,7 @@
                 return response.json();
             })
             .then(employees => {
-                employeeList.innerHTML = ''; // Очищаем список сотрудников
+                employeeList.innerHTML = '';
                 if (employees.length === 0) {
                     employeeList.innerHTML = '<p class="text-warning">Нет сотрудников на этой кафедре.</p>';
                 } else {
@@ -126,8 +141,20 @@
             .catch(error => {
                 alert(error.message);
             });
+    }
+
+    // Обработчики кнопок
+    document.getElementById('select-faculty').addEventListener('click', function() {
+        const facultyId = document.getElementById('faculty-select').value;
+        loadDepartments(facultyId);
+    });
+
+    document.getElementById('select-department').addEventListener('click', function() {
+        const departmentId = document.getElementById('department-select').value;
+        loadEmployees(departmentId);
     });
 </script>
 
 </body>
 </html>
+
