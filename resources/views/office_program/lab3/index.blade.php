@@ -2,7 +2,9 @@
 
 @section('title', 'lab2')
 @section('content')
-    <button class="btn bi-cloud-download"><a href="">Скачать Excel</a> </button>
+    <a href="{{ url($filePath) }}" class="btn bi-cloud-download" download>
+        Скачать Excel
+    </a>
     <table class="table table-bordered">
         <thead>
         <tr>
@@ -17,10 +19,10 @@
         @foreach($sotrs as $worker)
             <tr>
                 <td>{{$worker->id}}</td>
-                <td>{{$worker->Otdel}}</td>
+                <td>{{$worker->NameOtdel}}</td>
                 <td>{{$worker->LastName}}</td>
                 <td>{{$worker->FirstName}}</td>
-                <td>{{$worker->Money}}</td>
+                <td>{{$worker->TotalSalary}}</td>
             </tr>
         @endforeach
         </tbody>
