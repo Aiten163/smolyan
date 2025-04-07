@@ -5,6 +5,9 @@
     <a href="{{ url($filePath) }}" class="btn bi-cloud-download" download>
         Скачать Excel
     </a>
+    <a href="{{ url($filePath2) }}" class="btn bi-cloud-download" download>
+        Скачать Excel
+    </a>
     <table class="table table-bordered">
         <thead>
         <tr>

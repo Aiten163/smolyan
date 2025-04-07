@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 use PhpOffice\PhpSpreadsheet\Worksheet\Table;
 use PhpOffice\PhpSpreadsheet\Worksheet\Table\TableStyle;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -37,7 +38,8 @@ class SotrController extends Controller
     {
         $sotrs = $this->bd();
         $filePath = $this->createExcel($sotrs);
-        return view('office_program.lab3.index', compact('sotrs', 'filePath'));
+        $filePath2 = $this->createExcel2();
+        return view('office_program.lab3.index', compact('sotrs', 'filePath','filePath2'));
     }
 
     public function createExcel($sotrs)
@@ -111,6 +113,105 @@ class SotrController extends Controller
 
         // Сохраняем в публичную директорию
         $fileName = 'salaries_2018.xlsx';
+        $publicPath = public_path($fileName);
+
+        $writer = new Xlsx($spreadsheet);
+        $writer->save($publicPath);
+
+        return $fileName;
+    }
+    public function createExcel2()
+    {
+        // 1. Получаем данные из базы с сортировкой
+        $employees = DB::table('sotr')
+            ->select(
+                'otdels.NameOtdel as department',
+                'sotr.LastName',
+                'sotr.FirstName',
+                'sotr.Date_R',
+                'sotr.Dolzn'
+            )
+            ->join('otdels', 'sotr.Otdel', '=', 'otdels.idOtdel')
+            ->orderBy('NameOtdel')
+            ->orderBy('LastName')
+            ->orderBy('FirstName')
+            ->get();
+
+        // 2. Создаем Excel документ
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // Устанавливаем альбомную ориентацию
+        $sheet->getPageSetup()->setOrientation(PageSetup::ORIENTATION_LANDSCAPE);
+
+        // Добавляем заголовок "Список сотрудников отделов"
+        $sheet->mergeCells('A1:E1');
+        $sheet->setCellValue('A1', 'Список сотрудников отделов');
+        $sheet->getStyle('A1')->applyFromArray([
+            'font' => [
+                'bold' => true,
+                'size' => 16,
+                'color' => ['rgb' => '0000FF'] // Синий цвет
+            ],
+            'alignment' => [
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+            ]
+        ]);
+
+        // Заголовки столбцов (синие)
+        $sheet->setCellValue('A2', 'Отдел');
+        $sheet->setCellValue('B2', 'Фамилия');
+        $sheet->setCellValue('C2', 'Имя');
+        $sheet->setCellValue('D2', 'Дата рождения');
+        $sheet->setCellValue('E2', 'Должность');
+
+        $sheet->getStyle('A2:E2')->applyFromArray([
+            'font' => [
+                'bold' => true,
+                'color' => ['rgb' => '0000FF'] // Синий цвет
+            ],
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => ['rgb' => 'FFFFFF'] // Белый фон
+            ]
+        ]);
+
+        // Заполняем данные с чередованием цветов
+        foreach ($employees as $index => $employee) {
+            $row = $index + 3; // Начинаем с 3 строки (после заголовков)
+            $sheet->setCellValue('A'.$row, $employee->department);
+            $sheet->setCellValue('B'.$row, $employee->LastName);
+            $sheet->setCellValue('C'.$row, $employee->FirstName);
+            $sheet->setCellValue('D'.$row, $employee->Date_R);
+            $sheet->setCellValue('E'.$row, $employee->Dolzn);
+
+            // Чередуем цвета строк (белый/зеленый)
+            $color = ($index % 2 == 0) ? 'FFFFFF' : 'CCFFCC'; // Белый или светло-зеленый
+            $sheet->getStyle('A'.$row.':E'.$row)->applyFromArray([
+                'fill' => [
+                    'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                    'startColor' => ['rgb' => $color]
+                ]
+            ]);
+        }
+
+        // Автоподбор ширины колонок
+        foreach(range('A','E') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        // Границы для всей таблицы
+        $lastRow = count($employees) + 2;
+        $sheet->getStyle('A2:E'.$lastRow)->applyFromArray([
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                    'color' => ['rgb' => '000000']
+                ]
+            ]
+        ]);
+
+        $fileName = 'salaries_2018_2.xlsx';
         $publicPath = public_path($fileName);
 
         $writer = new Xlsx($spreadsheet);

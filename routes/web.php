@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WorkerController;
 use App\Http\Controllers\UniversityController;
 use App\Http\Controllers\ImageGenerateController;
+use App\Http\Controllers\VegetableController;
 
 Route::get('/', function () {
     return view('main');
@@ -23,12 +24,9 @@ Route::get('/office_program/lab2', function () {
 });
 Route::get('/office_program/lab3', [SotrController::class, 'getHtml']);
 
-Route::get('/office_program/lab4', function () {
-    return view('office_program.lab1.index');
-});
-Route::get('/office_program/lab5', function () {
-    return view('office_program.lab1.index');
-});
+Route::get('/office_program/lab4', [SotrController::class, 'getHtml']);
+Route::get('/office_program/lab5', [VegetableController::class, 'exportDeliveries']);
+
 Route::get('/office_program/lab6', function () {
     return view('office_program.lab1.index');
 });
