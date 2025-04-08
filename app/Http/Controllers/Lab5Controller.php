@@ -12,20 +12,30 @@ class Lab5Controller extends Controller
         // Получаем данные из базы
         $data = DB::table('sotr')
             ->join('otdels', 'sotr.Otdel', '=', 'otdels.idOtdel')
-            ->select('otdels.NameOtdel', DB::raw('COUNT(sotr.id) as count'))
-            ->groupBy('sotr.Otdel', 'otdels.NameOtdel')
+            ->join('zarpl', 'sotr.id', '=', 'zarpl.idSotr')
+            ->select(
+                'otdels.NameOtdel',
+                'otdels.idOtdel',
+                DB::raw('COUNT(DISTINCT sotr.id) as employee_count'), // Уникальные сотрудники
+                DB::raw('SUM(zarpl.Money) as total_salary'), // Сумма всех выплат
+                'zarpl.God as year'
+            )
+            ->groupBy('zarpl.God', 'otdels.idOtdel')
+            ->orderBy('year', 'asc')
+            ->orderBy('otdels.idOtdel', 'asc')
             ->get();
-
+        //dd($data);
         // Подсчет общего количества сотрудников
-        $total = $data->sum('count');
+        $total = $data->sum('employee_count');
 
-        // Добавляем проценты
+        // Добавляем процентыx`
         foreach ($data as $item) {
-            $item->percent = round(($item->count / $total) * 100, 2);
+            $item->percent = round(($item->employee_count / $total) * 100, 2);
+            echo  '       '.$item->total_salary . ' ' . $item->employee_count;
+            $item->sumMoney = round($item->total_salary / $item->employee_count);
         }
-
         // Создаем изображение
-        $width = 800;
+        $width = 1000;
         $height = 400;
         $image = imagecreatetruecolor($width, $height);
         $color = 40;
@@ -38,17 +48,14 @@ class Lab5Controller extends Controller
         $colors = [
             imagecolorallocate($image, 144, 238, 144), // Светло-зеленый (управления)
             imagecolorallocate($image, 255, 182, 193), // Светло-розовый (тех. обеспечения)
-            imagecolorallocate($image, 255, 105, 180)  // Темно-розовый (безопасности труда)
+            imagecolorallocate($image, 255, 105, 180),  // Темно-розовый (безопасности труда)
+            imagecolorallocate($image, 101-$color, 214-$color, 145-$color)
         ];
-//        $colors_down = [
-//            imagecolorallocate($image, 82, 151, 82), // Светло-зеленый (управления)
-//            imagecolorallocate($image, 185, 127, 135), // Светло-розовый (тех. обеспечения)
-//            imagecolorallocate($image, 193, 95, 144)  // Темно-розовый (безопасности труда)
-//        ];
         $colors_down = [
             imagecolorallocate($image, 144-$color, 238-$color, 144-$color), // Светло-зеленый (управления)
             imagecolorallocate($image, 255-$color, 182-$color, 193-$color), // Светло-розовый (тех. обеспечения)
-            imagecolorallocate($image, 255-$color, 105-$color, 180-$color)  // Темно-розовый (безопасности труда)
+            imagecolorallocate($image, 255-$color, 105-$color, 180-$color),  // Темно-розовый (безопасности труда)
+            imagecolorallocate($image, 101-$color, 214-$color, 145-$color),  // Темно-розовый (безопасности труда)
         ];
 
         // Заполняем фон
@@ -107,7 +114,7 @@ class Lab5Controller extends Controller
         foreach ($data as $key => $item) {
             imagefilledrectangle($image, $legendX, $legendY, $legendX + $squareSize, $legendY + $squareSize, $colors[$key]);
             imagerectangle($image, $legendX, $legendY, $legendX + $squareSize, $legendY + $squareSize, $black);
-            imagettftext($image, 12, 0, $legendX + $squareSize + 10, $legendY + 15, $black, $font, $item->NameOtdel . " - " . $item->percent . "%");
+            imagettftext($image, 12, 0, $legendX + $squareSize + 10, $legendY + 15, $black, $font,   $item->year. ' ' .$item->NameOtdel . " - " . $item->percent . "%" . ' Средняя з/п ' . $item->sumMoney . ' руб');
             $legendY += $step;
         }
 
