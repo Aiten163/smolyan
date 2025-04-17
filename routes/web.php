@@ -27,12 +27,11 @@ Route::get('/office_program/lab3', [SotrController::class, 'getHtml']);
 Route::get('/office_program/lab4', [SotrController::class, 'getHtml']);
 Route::get('/office_program/lab5', [VegetableController::class, 'exportDeliveries']);
 
-Route::get('/office_program/lab6', function () {
-    return view('office_program.lab1.index');
-});
-Route::get('/office_program/lab7', function () {
-    return view('office_program.lab1.index');
-});
+Route::get('/office_program/lab6', [\App\Http\Controllers\TovaryReportController::class, 'generateExcelReport']);
+Route::get('/office_program/lab7', [\App\Http\Controllers\TovaryReportController::class, 'index']);
+Route::get('/office_program/lab8', [\App\Http\Controllers\ReportController::class, 'index'])->name('report.index');
+Route::get('/office_program/lab8/diagram', [\App\Http\Controllers\ReportController::class, 'drawDiagram'])->name('report.diagram');
+Route::get('/office_program/lab8//show', [\App\Http\Controllers\ReportController::class, 'show'])->name('report.show');
 Route::prefix('data_base')->group(function () {
     Route::resource('/lab2', 'App\Http\Controllers\WorkerController')->except(['show']);
 
