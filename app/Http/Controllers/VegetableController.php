@@ -176,9 +176,13 @@ class VegetableController extends Controller
 
         $row = 3;
         $totalSum = 0;
-
+        $oldName = '';
         foreach ($summaryData as $data) {
-            $sheet->setCellValue("A{$row}", $data->category);
+            if($oldName == $data->category){
+            } else {
+                $sheet->setCellValue("A{$row}", $data->category);
+            }
+            $oldName = $data->category;
             $sheet->setCellValue("B{$row}", $data->subcategory);
             $sheet->setCellValueExplicit("C{$row}", $data->total_sum, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_NUMERIC);
             $sheet->getStyle("C{$row}")->getNumberFormat()->setFormatCode('#,##0.00');
