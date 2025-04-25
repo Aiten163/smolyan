@@ -66,7 +66,7 @@ class TovaryReportController extends Controller
             }
             .photo-img {
                 max-width: 80px;
-                max-height: 60px;
+                max-height: 80px;
             }
         </style>
     </head>
@@ -97,9 +97,9 @@ class TovaryReportController extends Controller
             <td>' . htmlspecialchars($tovar->kod) . '</td>
             <td>' . htmlspecialchars($tovar->tname) . '</td>
             <td>' . $tovar->date_p . '</td>
-            <td>' . number_format($tovar->price, 2, '.', '') . '</td>
+            <td style="text-align:right">' . number_format($tovar->price, 2, '.', '') . '</td>
             <td>' . $tovar->kol_vo . '</td>
-            <td>' . number_format($total, 2, '.', '') . '</td>
+            <td style="text-align:right">' . number_format($total, 2, '.', '') . '</td>
             <td class="photo-cell">';
 
             // Добавляем фото, если оно есть
@@ -149,7 +149,7 @@ class TovaryReportController extends Controller
             'Дата прихода',     // Ширина: 12
             'Цена',             // Ширина: 10
             'Количество',       // Ширина: 12
-            'Итого по товару', // Ширина: 15
+            'Итого по товару',  // Ширина: 15
             'Фото товара'       // Ширина: 20
         ];
 
@@ -157,19 +157,19 @@ class TovaryReportController extends Controller
         $sheet->fromArray($headers, null, 'A1');
 
         // Устанавливаем фиксированные ширины столбцов
-        $sheet->getColumnDimension('A')->setWidth(12);  // Код товара
-        $sheet->getColumnDimension('B')->setWidth(25);  // Наименование
-        $sheet->getColumnDimension('C')->setWidth(12);  // Дата прихода
-        $sheet->getColumnDimension('D')->setWidth(10);  // Цена
-        $sheet->getColumnDimension('E')->setWidth(12);  // Количество
-        $sheet->getColumnDimension('F')->setWidth(15);  // Итого
-        $sheet->getColumnDimension('G')->setWidth(20);  // Фото
+        $sheet->getColumnDimension('A')->setWidth(12);
+        $sheet->getColumnDimension('B')->setWidth(25);
+        $sheet->getColumnDimension('C')->setWidth(12);
+        $sheet->getColumnDimension('D')->setWidth(10);
+        $sheet->getColumnDimension('E')->setWidth(12);
+        $sheet->getColumnDimension('F')->setWidth(15);
+        $sheet->getColumnDimension('G')->setWidth(20);
 
         // Стиль для заголовков
         $headerStyle = [
             'fill' => [
                 'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                'startColor' => ['rgb' => 'FFFF00'] // Жёлтый
+                'startColor' => ['rgb' => 'FFFF00']
             ],
             'font' => [
                 'bold' => true,
@@ -189,8 +189,8 @@ class TovaryReportController extends Controller
         $sheet->getStyle('A1:G1')->applyFromArray($headerStyle);
 
         // Цвета для чередования строк
-        $color1 = 'CCFFCC'; // Светло-зелёный
-        $color2 = '99CC99'; // Зелёный
+        $color1 = 'CCFFCC';
+        $color2 = '99CC99';
 
         // Заполняем данные
         $row = 2;
@@ -210,20 +210,13 @@ class TovaryReportController extends Controller
             $sheet->setCellValue('A' . $row, $tovar->kod);
             $sheet->setCellValue('B' . $row, $tovar->tname);
             $sheet->setCellValue('C' . $row, $tovar->date_p);
-
-            // Форматируем цену и итого как числа
             $sheet->setCellValue('D' . $row, $tovar->price);
-            $sheet->getStyle('D' . $row)
-                ->getNumberFormat()
-                ->setFormatCode('#,##0.00');
-
+            $sheet->getStyle('D' . $row)->getNumberFormat()->setFormatCode('#,##0.00');
             $sheet->setCellValue('E' . $row, $tovar->kol_vo);
             $sheet->setCellValue('F' . $row, $total);
-            $sheet->getStyle('F' . $row)
-                ->getNumberFormat()
-                ->setFormatCode('#,##0.00');
+            $sheet->getStyle('F' . $row)->getNumberFormat()->setFormatCode('#,##0.00');
 
-            // Определяем цвет для строки (чередуем)
+            // Определяем цвет для строки
             $rowColor = ($index % 2 == 0) ? $color1 : $color2;
 
             // Стиль для строки
@@ -235,7 +228,7 @@ class TovaryReportController extends Controller
                 'borders' => [
                     'allBorders' => [
                         'borderStyle' => Border::BORDER_THIN,
-                        'color' => ['rgb' => '00FF00'] // Зелёные границы
+                        'color' => ['rgb' => '00FF00']
                     ]
                 ],
                 'alignment' => [
@@ -245,38 +238,57 @@ class TovaryReportController extends Controller
             ];
             $sheet->getStyle('A'.$row.':F'.$row)->applyFromArray($rowStyle);
 
-            // Обработка изображения (уменьшенный размер)
             if ($tovar->photo) {
                 try {
                     $imagePath = $tempDir . 'photo_' . $tovar->id . '.jpg';
                     file_put_contents($imagePath, $tovar->photo);
 
                     if (file_exists($imagePath)) {
+                        // Устанавливаем высоту строки
+                        $rowHeight = 100;
+                        $sheet->getRowDimension($row)->setRowHeight($rowHeight);
+
+                        // Получаем ширину столбца в пикселях (примерное значение)
+                        $cellWidthPixels = $sheet->getColumnDimension('G')->getWidth() * 7;
+
+                        // Создаем объект Drawing
                         $drawing = new \PhpOffice\PhpSpreadsheet\Worksheet\Drawing();
                         $drawing->setName('Photo_' . $tovar->id);
                         $drawing->setDescription('Photo');
                         $drawing->setPath($imagePath);
                         $drawing->setCoordinates('G' . $row);
-                        $drawing->setOffsetX(5);  // Центрирование
-                        $drawing->setOffsetY(5);  // Центрирование
-                        $drawing->setWidth(80);   // Уменьшенная ширина
-                        $drawing->setHeight(60);  // Уменьшенная высота
-                        $drawing->setWorksheet($sheet);
 
-                        // Устанавливаем высоту строки
-                        $sheet->getRowDimension($row)->setRowHeight(50);
+                        // Получаем размеры изображения
+                        list($imageWidth, $imageHeight) = getimagesize($imagePath);
+
+                        // Масштабируем изображение, чтобы оно поместилось в ячейку
+                        $scale = min($cellWidthPixels / $imageWidth, $rowHeight / $imageHeight);
+                        $scaledWidth = $imageWidth * $scale;
+                        $scaledHeight = $imageHeight * $scale;
+
+                        $drawing->setWidth($scaledWidth);
+                        $drawing->setHeight($scaledHeight);
+
+                        // Центрируем изображение
+                        $offsetX = ($cellWidthPixels - $scaledWidth + 25) / 2;
+                        $offsetY = ($rowHeight - $scaledHeight + 15) / 2;
+
+                        $drawing->setOffsetX($offsetX);
+                        $drawing->setOffsetY($offsetY);
+
+                        $drawing->setWorksheet($sheet);
                     }
                 } catch (\Exception $e) {
                     \Log::error('Ошибка при обработке изображения товара ID: ' . $tovar->id, ['error' => $e->getMessage()]);
                 }
             }
 
-            // Стиль для ячейки с изображением (синие границы)
+            // Стиль для ячейки с изображением
             $sheet->getStyle('G'.$row)->applyFromArray([
                 'borders' => [
                     'allBorders' => [
                         'borderStyle' => Border::BORDER_THIN,
-                        'color' => ['rgb' => '0000FF'] // Синий
+                        'color' => ['rgb' => '0000FF']
                     ]
                 ],
                 'alignment' => [
@@ -291,15 +303,13 @@ class TovaryReportController extends Controller
         // Добавляем итоговую сумму
         $sheet->setCellValue('E' . $row, 'Итого:');
         $sheet->setCellValue('F' . $row, $totalSum);
-        $sheet->getStyle('F' . $row)
-            ->getNumberFormat()
-            ->setFormatCode('#,##0.00');
+        $sheet->getStyle('F' . $row)->getNumberFormat()->setFormatCode('#,##0.00');
 
         // Стиль для строки итогов
         $sheet->getStyle('A'.$row.':F'.$row)->applyFromArray([
             'fill' => [
                 'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                'startColor' => ['rgb' => 'FFCC99'] // Оранжевый
+                'startColor' => ['rgb' => 'FFCC99']
             ],
             'font' => [
                 'bold' => true
@@ -316,7 +326,10 @@ class TovaryReportController extends Controller
             ]
         ]);
 
-        // Создаем writer и сохраняем в временный файл
+        $sheet->getStyle('F2:F'.$row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+        $sheet->getStyle('D2:D'.$row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+
+        // Создаем writer и сохраняем файл
         $writer = new Xlsx($spreadsheet);
         $fileName = 'tovary_report_' . date('Y-m-d') . '.xlsx';
         $temp_file = tempnam(sys_get_temp_dir(), $fileName);

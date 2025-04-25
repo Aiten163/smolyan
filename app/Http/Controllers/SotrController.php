@@ -47,17 +47,52 @@ class SotrController extends Controller
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
 
-        // Заголовки
-        $sheet->setCellValue('D1', 'Отдел');
-        $sheet->setCellValue('E1', 'Фамилия');
-        $sheet->setCellValue('F1', 'Имя');
-        $sheet->setCellValue('G1', 'Зарплата');
-        $sheet->setCellValue('H1', 'Итого по отделу');
+        // Заголовки с цветом фона
+        $headerStyle = [
+            'font' => [
+                'bold' => true,
+                'color' => ['rgb' => 'FFFFFF']
+            ],
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => ['rgb' => '4F81BD']
+            ]
+        ];
 
-        // Устанавливаем числовой формат для колонок G (зарплата) и H (итого)
+        $sheet->setCellValue('D1', 'Отдел')->getStyle('D1')->applyFromArray($headerStyle);
+        $sheet->setCellValue('E1', 'Фамилия')->getStyle('E1')->applyFromArray($headerStyle);
+        $sheet->setCellValue('F1', 'Имя')->getStyle('F1')->applyFromArray($headerStyle);
+        $sheet->setCellValue('G1', 'Зарплата')->getStyle('G1')->applyFromArray($headerStyle);
+        $sheet->setCellValue('H1', 'Итого по отделу')->getStyle('H1')->applyFromArray($headerStyle);
+
+        // Устанавливаем числовой формат и размер шрифта 12 для колонок G (зарплата) и H (итого)
         $sheet->getStyle('G2:H' . (count($sotrs) + 1))
             ->getNumberFormat()
             ->setFormatCode(\PhpOffice\PhpSpreadsheet\Style\NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
+
+        $numberStyle = [
+            'font' => [
+                'size' => 10
+            ]
+        ];
+        $sheet->getStyle('G2:H' . (count($sotrs) + 1))->applyFromArray($numberStyle);
+
+        // Цвета для колонок
+        $columnColors = [
+            'D' => 'DCE6F1', // Светло-голубой для отдела
+            'E' => 'F2DCDB', // Светло-розовый для фамилии
+            'F' => 'EBF1DE', // Светло-зеленый для имени
+            'G' => 'E5E0EC', // Светло-фиолетовый для зарплаты
+            'H' => 'FDEADA'  // Светло-оранжевый для итого
+        ];
+
+        foreach ($columnColors as $column => $color) {
+            $sheet->getStyle($column . '2:' . $column . (count($sotrs) + 1))
+                ->getFill()
+                ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
+                ->getStartColor()
+                ->setRGB($color);
+        }
 
         $sum = 0;
         $lastOtdel = $sotrs->first()->NameOtdel;
@@ -86,10 +121,10 @@ class SotrController extends Controller
                 }
                 $sheet->setCellValue('D'.$row, $sotr->NameOtdel);
                 $sheet->setCellValue('H'.$row-1, $sum);
-                $sheet->setCellValue('H'.$row, 0);
+                //$sheet->setCellValue('H'.$row, 0);
                 $sum = 0;
             } else {
-                $sheet->setCellValue('H'.$row, 0);
+                //$sheet->setCellValue('H'.$row, 0);
             }
 
             $sum += $sotr->TotalSalary;
@@ -210,10 +245,9 @@ class SotrController extends Controller
                 ]
             ]
         ]);
-
         $fileName = 'salaries_2018_2.xlsx';
         $publicPath = public_path($fileName);
-
+        $sheet->getStyle('D3:D30')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
         $writer = new Xlsx($spreadsheet);
         $writer->save($publicPath);
 

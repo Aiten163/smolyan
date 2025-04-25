@@ -63,21 +63,37 @@ class ReportController extends Controller
         }
 
         if (empty($monthlySums)) {
-            return $this->drawNoDataImage(); // как в предыдущем ответе
+            return $this->drawNoDataImage();
         }
 
         $image = imagecreate($width, $height);
         $white = imageColorAllocate($image, 255, 255, 255);
         $black = imageColorAllocate($image, 0, 0, 0);
         $gray = imageColorAllocate($image, 200, 200, 200);
-        $blue = imageColorAllocate($image, 100, 149, 237);
+
+        // Массив разных цветов для столбцов
+        $colors = [
+            imageColorAllocate($image, 255, 0, 0),     // красный
+            imageColorAllocate($image, 0, 255, 0),     // зеленый
+            imageColorAllocate($image, 0, 0, 255),     // синий
+            imageColorAllocate($image, 255, 255, 0),   // желтый
+            imageColorAllocate($image, 255, 0, 255),   // пурпурный
+            imageColorAllocate($image, 0, 255, 255),   // голубой
+            imageColorAllocate($image, 128, 0, 0),     // темно-красный
+            imageColorAllocate($image, 0, 128, 0),     // темно-зеленый
+            imageColorAllocate($image, 0, 0, 128),     // темно-синий
+            imageColorAllocate($image, 128, 128, 0),  // оливковый
+            imageColorAllocate($image, 128, 0, 128),   // фиолетовый
+            imageColorAllocate($image, 0, 128, 128)   // темно-голубой
+        ];
 
         // Фон и рамка
         imagefilledrectangle($image, 0, 0, $width, $height, $white);
-        imagerectangle($image, 0, 0, $width - 1, $height - 1, $black);
+        imagerectangle($image, 0, 0, $width - 1, $height -1, $black);
 
         // Заголовок
         imagettftext($image, 16, 0, $padding, 30, $black, $fontPath, "Зарплата по отделу №$idOtdel за 2018 год");
+        imagettftext($image, 12, 0, 500, 50, $black, $fontPath, "Дата создания " . now());
 
         // Подписи месяцев и график
         $months = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
@@ -87,20 +103,20 @@ class ReportController extends Controller
 
         for ($i = 1; $i <= 12; $i++) {
             $x = $padding + ($i - 1) * 60;
-            $y = $height - 50;
+            $y = $height - 65; // Понижено на 15 пикселей (было 50)
             $value = $monthlySums[$i] ?? 0;
             $barHeight = $value * $scale;
+            $colorIndex = ($i - 1) % count($colors); // циклический выбор цвета
 
             // Столбик
-            imagefilledrectangle($image, $x, $y - $barHeight, $x + $barWidth, $y, $blue);
+            imagefilledrectangle($image, $x, $y - $barHeight, $x + $barWidth, $y, $colors[$colorIndex]);
 
             // Подпись месяца
-            imagettftext($image, 10, 90, $x + 10, $y + 35, $black, $fontPath, $months[$i - 1]);
+            imagettftext($image, 10, 90, $x + 17, $y - 10, $black, $fontPath, $months[$i - 1]);
 
-            // Цифра (сумма)
+            // Цифра (сумма) с форматированием с запятой
             if ($value > 0) {
-                imagettftext($image, 10, 0, $x, $y - $barHeight - 5, $black, $fontPath, round($value));
-            }
+                imagettftext($image, 7, 45, $x, 575, $black, $fontPath, number_format($value, 2, ',', ' '));          }
         }
 
         header('Content-Type: image/jpeg');

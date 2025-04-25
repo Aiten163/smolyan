@@ -4,6 +4,22 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use PhpOffice\PhpSpreadsheet\Chart\Chart;
+use PhpOffice\PhpSpreadsheet\Chart\DataSeries;
+use PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues;
+use PhpOffice\PhpSpreadsheet\Chart\Legend;
+use PhpOffice\PhpSpreadsheet\Chart\PlotArea;
+use PhpOffice\PhpSpreadsheet\Chart\Title;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Amenadiel\JpGraph\Graph\PieGraph;
+use Amenadiel\JpGraph\Plot\PiePlot;
+
+use CpChart\Chart\Pie;
+use CpChart\Data;
+use CpChart\Image;
+
+
 
 class Lab5Controller extends Controller
 {
@@ -126,9 +142,120 @@ class Lab5Controller extends Controller
 
         return 'data:image/png;base64,' . base64_encode($imageData);
     }
-    public function index()
+    public function generateImage2()
     {
-        $img = self::generateImage();
-        return(view('data_base.lab5.index', ['img' => $img]));
+        // Получаем данные из базы
+        $dbData = DB::table('sotr')
+            ->join('otdels', 'sotr.Otdel', '=', 'otdels.idOtdel')
+            ->join('zarpl', 'sotr.id', '=', 'zarpl.idSotr')
+            ->select(
+                'otdels.NameOtdel',
+                'otdels.idOtdel',
+                DB::raw('COUNT(DISTINCT sotr.id) as employee_count'),
+                DB::raw('SUM(zarpl.Money) as total_salary'),
+                'zarpl.God as year'
+            )
+            ->groupBy('zarpl.God', 'otdels.idOtdel')
+            ->orderBy('year', 'asc')
+            ->orderBy('otdels.idOtdel', 'asc')
+            ->get();
+
+        // Подготавливаем данные для графика
+        $chartData = new pData();
+        $chartData->addPoints([40, 30, 20], "ScoreA");
+        $chartData->setSerieDescription("ScoreA", "Application A");
+        $chartData->addPoints(["A", "B", "C"], "Labels");
+        $chartData->setAbscissa("Labels");
+
+        // Создаем изображение
+        $image = new pImage(700, 230, $chartData, true);
+
+        // Настройка фона
+        $image->drawFilledRectangle(0, 0, 700, 230, [
+            "R" => 173, "G" => 152, "B" => 217,
+            "Dash" => 1, "DashR" => 193, "DashG" => 172, "DashB" => 237
+        ]);
+
+        // Градиент
+        $image->drawGradientArea(0, 0, 700, 230, DIRECTION_VERTICAL, [
+            "StartR" => 209, "StartG" => 150, "StartB" => 231,
+            "EndR" => 111, "EndG" => 3, "EndB" => 138,
+            "Alpha" => 50
+        ]);
+
+        // Заголовок
+        $image->drawGradientArea(0, 0, 700, 20, DIRECTION_VERTICAL, [
+            "StartR" => 0, "StartG" => 0, "StartB" => 0,
+            "EndR" => 50, "EndG" => 50, "EndB" => 50,
+            "Alpha" => 100
+        ]);
+
+        // Рамка
+        $image->drawRectangle(0, 0, 699, 229, ["R" => 0, "G" => 0, "B" => 0]);
+
+        // Текст заголовка
+        $image->setFontProperties([
+            "FontName" => resource_path('fonts/Silkscreen.ttf'),
+            "FontSize" => 6
+        ]);
+        $image->drawText(10, 13, "pPie - Draw 3D pie charts", [
+            "R" => 255, "G" => 255, "B" => 255
+        ]);
+
+        // Основные настройки шрифта
+        $image->setFontProperties([
+            "FontName" => resource_path('fonts/Forgotte.ttf'),
+            "FontSize" => 10,
+            "R" => 80, "G" => 80, "B" => 80
+        ]);
+
+        // Создаем круговую диаграмму
+        $pieChart = new pPie($image, $chartData);
+
+        // Цвета секторов
+        $pieChart->setSliceColor(0, ["R" => 143, "G" => 197, "B" => 0]);
+        $pieChart->setSliceColor(1, ["R" => 97, "G" => 77, "B" => 63]);
+        $pieChart->setSliceColor(2, ["R" => 97, "G" => 113, "B" => 63]);
+
+        // Рисуем диаграмму
+        $pieChart->draw3DPie(340, 125, [
+            "DrawLabels" => true,
+            "Border" => true
+        ]);
+
+        // Включаем тень
+        $image->setShadow(true, [
+            "X" => 3, "Y" => 3,
+            "R" => 0, "G" => 0, "B" => 0,
+            "Alpha" => 10
+        ]);
+
+        // Сохраняем изображение в буфер
+        ob_start();
+        $image->render(null); // Не выводим сразу
+        $imageData = ob_get_clean();
+
+        // Возвращаем base64
+        return response()->json([
+            'image' => 'data:image/png;base64,' . base64_encode($imageData)
+        ]);
     }
+
+public function index()
+{
+    $img = self::generateImage(); // Ваш оригинальный график
+    $imagePath = public_path('/img2.png');
+    $imageData = file_get_contents($imagePath);
+    $base64 = base64_encode($imageData);
+    $img2 = 'data:image/jpeg;base64,' . $base64; // Готовый base64-код для вставки в HTML
+
+
+    return view('data_base.lab5.index', [
+        'img' => '',
+        'img2' => $img2
+    ]);
 }
+}
+
+
+

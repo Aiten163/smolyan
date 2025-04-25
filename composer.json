@@ -9,10 +9,14 @@
         "php": "^8.2",
         "ext-fileinfo": "*",
         "ext-gd": "*",
+        "amenadiel/jpgraph": "^4.1",
         "laravel/framework": "^11.31",
         "laravel/tinker": "^2.9",
         "laravel/ui": "^4.6",
-        "phpoffice/phpspreadsheet": "^4.1"
+        "mitoteam/jpgraph": "^10.4",
+        "phpoffice/phpspreadsheet": "^4.1",
+        "szymach/c-pchart": "^3.0",
+        "wp-statistics/pchart": "^1.2"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.15",
