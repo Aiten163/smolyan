@@ -47,7 +47,6 @@ class Lab5Controller extends Controller
         // Добавляем процентыx`
         foreach ($data as $item) {
             $item->percent = round(($item->employee_count / $total) * 100, 2);
-            echo  '       '.$item->total_salary . ' ' . $item->employee_count;
             $item->sumMoney = round($item->total_salary / $item->employee_count);
         }
         // Создаем изображение
@@ -248,11 +247,9 @@ public function index()
     $imageData = file_get_contents($imagePath);
     $base64 = base64_encode($imageData);
     $img2 = 'data:image/jpeg;base64,' . $base64; // Готовый base64-код для вставки в HTML
-
-
     return view('data_base.lab5.index', [
-        'img' => '',
-        'img2' => $img2
+        'img' => $img,
+        //'img2' => $img2
     ]);
 }
 }

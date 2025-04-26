@@ -4,6 +4,7 @@ use App\Http\Controllers\Lab5Controller;
 use App\Http\Controllers\SotrController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WorkerController;
+use App\Http\Controllers\Lab9_2Controller;
 use App\Http\Controllers\UniversityController;
 use App\Http\Controllers\ImageGenerateController;
 use App\Http\Controllers\VegetableController;
@@ -43,4 +44,14 @@ Route::prefix('data_base')->group(function () {
     Route::get('/lab5', [Lab5Controller::class, 'index']);
     Route::post('/lab5/store-selection', [UniversityController::class, 'storeSelection'])
         ->name('university.storeSelection');
+    Route::prefix('lab6')->group(function() {
+        Route::get('/', [Lab9_2Controller::class, 'index'])->name('lab9_2.index');
+        Route::get('/generate-image', [Lab9_2Controller::class, 'generateImage'])->name('lab9_2.generateImage');
+        Route::post('/save-generated', [Lab9_2Controller::class, 'saveGeneratedImage'])->name('lab9_2.saveGeneratedImage');
+        Route::get('/get-images', [Lab9_2Controller::class, 'getImages'])->name('lab9_2.getImages');
+    });
+    Route::get('/lab7', function () {
+        return redirect()->route('lab9_2.index');
+    });
+
 });
