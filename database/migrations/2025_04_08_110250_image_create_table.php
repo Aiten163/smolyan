@@ -13,8 +13,14 @@ return new class extends Migration
     {
         Schema::create('images', function (Blueprint $table) {
             $table->id();
-            $table->longText('data');
-            $table->dateTime('created_at');
+            $table->string('filename');  // Имя файла изображения
+            $table->string('path');      // Путь к изображению относительно public
+            $table->timestamps();        // created_at и updated_at
+
+            // Можно добавить дополнительные поля при необходимости
+            // $table->integer('width')->nullable();
+            // $table->integer('height')->nullable();
+            // $table->string('mime_type')->nullable();
         });
     }
 
