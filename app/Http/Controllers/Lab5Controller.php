@@ -53,18 +53,31 @@ class Lab5Controller extends Controller
         $black = imagecolorallocate($image, 0, 0, 0);
         $shadow = imagecolorallocate($image, 200, 200, 200);
 
+        $r = rand(0, 255);
+        $g = rand(0, 255);
+        $b = rand(0, 255);
+        $r1 = rand(0, 255);
+        $g1 = rand(0, 255);
+        $b1 = rand(0, 255);
+        $r2 = rand(0, 255);
+        $g2 = rand(0, 255);
+        $b2 = rand(0, 255);
+        $r3 = rand(0, 255);
+        $g3 = rand(0, 255);
+        $b3 = rand(0, 255);
+
         // Основные цвета
         $colors = [
-            imagecolorallocate($image, 144, 238, 144),
-            imagecolorallocate($image, 255, 182, 193),
-            imagecolorallocate($image, 255, 105, 180),
-            imagecolorallocate($image, 101 - $color, 214 - $color, 145 - $color)
+            imagecolorallocate($image, $r, $g, $b),
+            imagecolorallocate($image, $r1, $g1, $r1),
+            imagecolorallocate($image, $r2, $g2, $r2),
+            imagecolorallocate($image, $r3, $g3, $r3),
         ];
         $colors_down = [
-            imagecolorallocate($image, 144 - $color, 238 - $color, 144 - $color),
-            imagecolorallocate($image, 255 - $color, 182 - $color, 193 - $color),
-            imagecolorallocate($image, 255 - $color, 105 - $color, 180 - $color),
-            imagecolorallocate($image, 101 - $color, 214 - $color, 145 - $color),
+            imagecolorallocate($image, abs($r -$color), abs($g -$color), abs($b -$color)),
+            imagecolorallocate($image, abs($r1-$color), abs($g1-$color), abs($r1-$color)),
+            imagecolorallocate($image, abs($r2-$color), abs($g2-$color), abs($r2-$color)),
+            imagecolorallocate($image, abs($r3-$color), abs($g3-$color), abs($r3-$color)),
         ];
 
         // Заполняем фон
