@@ -53,5 +53,6 @@ Route::prefix('data_base')->group(function () {
     Route::get('/lab7', function () {
         return redirect()->route('lab9_2.index');
     });
-
+    Route::get('/lab8', [\App\Http\Controllers\CurrencyController::class, 'index'])->name('currency.index');
+    Route::get('/lab8/get-rates', [\App\Http\Controllers\CurrencyController::class, 'getRates'])->name('currency.rates');
 });
